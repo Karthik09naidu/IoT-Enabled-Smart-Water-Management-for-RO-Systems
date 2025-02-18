@@ -1,0 +1,83 @@
+#include <ArduinoIoTCloud.h>
+#include <Arduino_ConnectionHandler.h>   // Corrected typo here: 'Arduino ConnectionHandler .h' -> 'Arduino_ConnectionHandler.h'
+#include <WiFiConnectionManager.h>
+
+// Cloud properties
+CloudFloat tds;         // Total Dissolved Solids sensor reading
+CloudFloat pH;          // pH sensor reading
+CloudFloat moisture;    // Soil moisture sensor reading
+
+volatile int flowCountBefore = 0, flowCountAfter = 0;  // Flow sensor readings (before and after)
+
+void setup() {
+  Serial.begin(9600); // Begin serial communication
+
+  // Connect to Arduino IoT Cloud
+  initProperties(); // Initialize cloud properties
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection); // Connect to Arduino IoT Cloud
+  setDebugMessageLevel(2); // Set debug message level
+  ArduinoCloud.printDebugInfo(); // Print debug information
+}
+
+void loop() {
+  ArduinoCloud.update(); // Keep the cloud updated
+
+  // Update sensor values
+  tds = readTDS();
+  pH = readpH();
+  moisture = readMoisture();
+
+  // Display sensor readings on serial monitor
+  Serial.print("TDS: ");
+  Serial.print(tds);
+  Serial.print(" pH: ");
+  Serial.print(pH);
+  Serial.print(" Moisture: ");
+  Serial.print(moisture);
+  Serial.print(" Flow Before: ");
+  Serial.print(flowCountBefore);
+  Serial.print(" Flow After: ");
+  Serial.println(flowCountAfter);
+
+  delay(2000); // Delay for 2 seconds before the next loop
+}
+
+// Initialize cloud properties
+void initProperties() {
+  ArduinoCloud.addProperty(tds, READWRITE, ONCHANGE, onTdsChange);
+  ArduinoCloud.addProperty(pH, READWRITE, ONCHANGE, onPhChange);
+  ArduinoCloud.addProperty(moisture, READWRITE, ONCHANGE, onMoistureChange);
+}
+
+// Function to read TDS sensor value
+float readTDS() {
+  int analogValue = analogRead(A0); // Read the analog value from pin A0
+  return (analogValue * (5.0 / 1024.0)); // Convert the analog value to TDS reading (scaled)
+}
+
+// Function to read pH sensor value
+float readpH() {
+  int analogValue = analogRead(A1); // Read the analog value from pin A1
+  return (analogValue * (5.0 / 1024.0)); // Convert to pH reading (scaled)
+}
+
+// Function to read moisture sensor value
+float readMoisture() {
+  int analogValue = analogRead(A2); // Read the analog value from pin A2
+  return (analogValue * (100.0 / 1024.0)); // Convert to moisture level (percentage)
+}
+
+// Handler for when TDS changes
+void onTdsChange() {
+  // Handle TDS change if necessary
+}
+
+// Handler for when pH changes
+void onPhChange() {
+  // Handle pH change if necessary
+}
+
+// Handler for when moisture level changes
+void onMoistureChange() {
+  // Handle moisture change if necessary
+}
